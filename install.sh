@@ -55,7 +55,7 @@ ENVIRONMENT VARIABLES (alternative to flags)
   MAILS_MAILBOX      Same as --mailbox
 
 EXAMPLES
-  # Hosted (after running: npm install -g mails && mails claim myagent)
+  # Hosted (after running: npm install -g mails-agent && mails claim myagent)
   ./install.sh
 
   # Self-hosted, non-interactive
@@ -272,9 +272,9 @@ case $PLATFORM in
         if [ "$install_cli" != "n" ] && [ "$install_cli" != "N" ]; then
           if ! command -v npm &> /dev/null; then
             warn "npm not found. Install Node.js first: https://nodejs.org/"
-            echo "    Then run: npm install -g mails"
+            echo "    Then run: npm install -g mails-agent"
           else
-            npm install -g mails
+            npm install -g mails-agent
             configure_mails_cli
           fi
         fi

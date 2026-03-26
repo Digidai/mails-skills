@@ -6,7 +6,7 @@
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
     <a href="#supported-platforms"><img src="https://img.shields.io/badge/platforms-Claude_Code_%7C_OpenClaw_%7C_Cursor_%7C_Any_Agent-brightgreen.svg" alt="Platforms"></a>
-    <a href="https://www.npmjs.com/package/mails"><img src="https://img.shields.io/npm/v/mails.svg?label=mails%20CLI" alt="npm version"></a>
+    <a href="https://www.npmjs.com/package/mails-agent"><img src="https://img.shields.io/npm/v/mails-agent.svg?label=mails-agent%20CLI" alt="npm version"></a>
   </p>
 </p>
 
@@ -30,7 +30,7 @@
 ### Option A: Hosted (2 commands)
 
 ```bash
-npm install -g mails          # Install the CLI
+npm install -g mails-agent    # Install the CLI
 mails claim myagent           # Claim myagent@mails.dev (free)
 ```
 
@@ -51,7 +51,7 @@ You need: a domain on Cloudflare + a free [Resend](https://resend.com) account.
 
 ```bash
 # 1. Deploy the Worker
-git clone https://github.com/chekusu/mails && cd mails/worker
+git clone https://github.com/Digidai/mails && cd mails/worker
 bun install
 
 # 2. Create D1 database
