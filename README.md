@@ -98,6 +98,8 @@ cp skills/claude-code/email.md ~/.claude/skills/email.md
 **OpenClaw:**
 ```bash
 cp -r skills/openclaw ~/.openclaw/skills/email
+
+# Add to your shell profile (~/.zshrc or ~/.bashrc) so OpenClaw can access them:
 export MAILS_API_URL="https://your-worker.workers.dev"
 export MAILS_AUTH_TOKEN="your-token"
 export MAILS_MAILBOX="agent@yourdomain.com"

@@ -7,44 +7,68 @@ set -e
 echo "mails-skills installer"
 echo ""
 
+# --- Check dependencies ---
+if ! command -v python3 &> /dev/null; then
+  echo "[!!] Error: python3 is required but not installed."
+  echo "  Install Python 3: https://www.python.org/downloads/"
+  exit 1
+fi
+if ! command -v curl &> /dev/null; then
+  echo "[!!] Error: curl is required but not installed."
+  exit 1
+fi
+
 # --- Auto-detect mails config ---
 MAILS_CONFIG="$HOME/.mails/config.json"
 AUTO_WORKER_URL=""
 AUTO_AUTH_TOKEN=""
 AUTO_MAILBOX=""
+IS_HOSTED=false
 
 if [ -f "$MAILS_CONFIG" ]; then
   echo "[ok] Found mails config at $MAILS_CONFIG"
-  AUTO_WORKER_URL=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('worker_url', ''))" 2>/dev/null || true)
-  AUTO_AUTH_TOKEN=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('api_key', '') or c.get('worker_token', ''))" 2>/dev/null || true)
-  AUTO_MAILBOX=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('mailbox', '') or c.get('default_from', ''))" 2>/dev/null || true)
 
-  # For hosted users, worker_url might not be set — use the default hosted URL
-  if [ -z "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ]; then
-    AUTO_WORKER_URL="https://mails-dev-worker.o-u-turing.workers.dev"
-  fi
+  # Validate JSON before parsing
+  if ! python3 -c "import json; json.load(open('$MAILS_CONFIG'))" 2>/dev/null; then
+    echo "[!!] Warning: $MAILS_CONFIG is not valid JSON, skipping auto-detection."
+  else
+    AUTO_WORKER_URL=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('worker_url', ''))" 2>/dev/null || true)
+    AUTO_AUTH_TOKEN=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('api_key', '') or c.get('worker_token', ''))" 2>/dev/null || true)
+    AUTO_MAILBOX=$(python3 -c "import json; c=json.load(open('$MAILS_CONFIG')); print(c.get('mailbox', '') or c.get('default_from', ''))" 2>/dev/null || true)
 
-  if [ -n "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ] && [ -n "$AUTO_MAILBOX" ]; then
-    echo "  Worker URL: $AUTO_WORKER_URL"
-    echo "  Mailbox:    $AUTO_MAILBOX"
-    echo "  Token:      ${AUTO_AUTH_TOKEN:0:8}..."
-    echo ""
-    read -p "Use these settings? [Y/n]: " use_auto
-    if [ "$use_auto" = "n" ] || [ "$use_auto" = "N" ]; then
-      AUTO_WORKER_URL=""
-      AUTO_AUTH_TOKEN=""
-      AUTO_MAILBOX=""
+    # For hosted users, worker_url might not be set — use the default hosted URL
+    if [ -z "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ]; then
+      AUTO_WORKER_URL="https://mails-dev-worker.o-u-turing.workers.dev"
+      IS_HOSTED=true
+    fi
+
+    if [ -n "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ] && [ -n "$AUTO_MAILBOX" ]; then
+      echo "  Worker URL: $AUTO_WORKER_URL"
+      echo "  Mailbox:    $AUTO_MAILBOX"
+      echo "  Token:      ${AUTO_AUTH_TOKEN:0:8}..."
+      echo ""
+      read -p "Use these settings? [Y/n]: " use_auto
+      if [ "$use_auto" = "n" ] || [ "$use_auto" = "N" ]; then
+        AUTO_WORKER_URL=""
+        AUTO_AUTH_TOKEN=""
+        AUTO_MAILBOX=""
+        IS_HOSTED=false
+      fi
     fi
   fi
 fi
 
 # --- Detect platform ---
 PLATFORM=""
-if [ -d "$HOME/.claude" ]; then
+HAS_CLAUDE=false
+HAS_OPENCLAW=false
+[ -d "$HOME/.claude" ] && HAS_CLAUDE=true
+{ [ -d "$HOME/.openclaw" ] || [ -d "$HOME/openclaw" ]; } && HAS_OPENCLAW=true
+
+if [ "$HAS_CLAUDE" = true ] && [ "$HAS_OPENCLAW" = false ]; then
   PLATFORM="claude-code"
   echo "[ok] Detected: Claude Code"
-fi
-if [ -d "$HOME/.openclaw" ] || [ -d "$HOME/openclaw" ]; then
+elif [ "$HAS_OPENCLAW" = true ] && [ "$HAS_CLAUDE" = false ]; then
   PLATFORM="openclaw"
   echo "[ok] Detected: OpenClaw"
 fi
@@ -119,6 +143,21 @@ case $PLATFORM in
     echo "[ok] Skill installed to $SKILL_DST"
 
     # Also install/configure mails CLI
+    configure_mails_cli() {
+      if [ "$IS_HOSTED" = true ]; then
+        # Hosted users: only set mailbox/default_from — don't overwrite api_key with worker_url/worker_token
+        # (mails claim already saved api_key; setting worker_url would change the send provider priority)
+        mails config set mailbox "$MAILBOX"
+        mails config set default_from "$MAILBOX"
+      else
+        # Self-hosted users: set worker_url and worker_token
+        mails config set worker_url "$WORKER_URL"
+        mails config set worker_token "$AUTH_TOKEN"
+        mails config set mailbox "$MAILBOX"
+        mails config set default_from "$MAILBOX"
+      fi
+      echo "[ok] mails CLI configured"
+    }
     if ! command -v mails &> /dev/null; then
       echo ""
       read -p "Install mails CLI? (recommended) [Y/n]: " install_cli
@@ -128,19 +167,11 @@ case $PLATFORM in
           echo "  Then run: npm install -g mails"
         else
           npm install -g mails
-          mails config set worker_url "$WORKER_URL"
-          mails config set worker_token "$AUTH_TOKEN"
-          mails config set mailbox "$MAILBOX"
-          mails config set default_from "$MAILBOX"
-          echo "[ok] mails CLI configured"
+          configure_mails_cli
         fi
       fi
     else
-      mails config set worker_url "$WORKER_URL"
-      mails config set worker_token "$AUTH_TOKEN"
-      mails config set mailbox "$MAILBOX"
-      mails config set default_from "$MAILBOX"
-      echo "[ok] mails CLI configured"
+      configure_mails_cli
     fi
     ;;
 
@@ -154,28 +185,47 @@ case $PLATFORM in
         cp "$SKILL_SRC" "$dir/email/SKILL.md"
         echo "[ok] Skill installed to $dir/email/SKILL.md"
         INSTALLED=true
-
-        # Write .env file next to SKILL.md
-        cat > "$dir/email/.env" <<ENVEOF
-MAILS_API_URL=$WORKER_URL
-MAILS_AUTH_TOKEN=$AUTH_TOKEN
-MAILS_MAILBOX=$MAILBOX
-ENVEOF
-        echo "[ok] Environment variables written to $dir/email/.env"
         break
       fi
     done
     if [ "$INSTALLED" = false ]; then
       mkdir -p "./email"
       cp "$SKILL_SRC" "./email/SKILL.md"
-      cat > "./email/.env" <<ENVEOF
-MAILS_API_URL=$WORKER_URL
-MAILS_AUTH_TOKEN=$AUTH_TOKEN
-MAILS_MAILBOX=$MAILBOX
-ENVEOF
       echo "[ok] Skill saved to ./email/SKILL.md (OpenClaw directory not found)"
-      echo "[ok] Environment variables written to ./email/.env"
       echo "  Move the email/ folder to your OpenClaw skills directory."
+    fi
+
+    # OpenClaw skills read env vars from the system environment, NOT from a .env file.
+    # Add exports to shell profile so they're available when OpenClaw runs.
+    EXPORT_LINES="
+export MAILS_API_URL=\"$WORKER_URL\"
+export MAILS_AUTH_TOKEN=\"$AUTH_TOKEN\"
+export MAILS_MAILBOX=\"$MAILBOX\""
+
+    SHELL_RC=""
+    if [ -f "$HOME/.zshrc" ]; then
+      SHELL_RC="$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+      SHELL_RC="$HOME/.bashrc"
+    elif [ -f "$HOME/.bash_profile" ]; then
+      SHELL_RC="$HOME/.bash_profile"
+    fi
+
+    if [ -n "$SHELL_RC" ]; then
+      if grep -q "MAILS_API_URL" "$SHELL_RC" 2>/dev/null; then
+        echo "[ok] MAILS_* env vars already in $SHELL_RC (not modified)"
+      else
+        echo "" >> "$SHELL_RC"
+        echo "# mails-skills (email for AI agents)" >> "$SHELL_RC"
+        echo "$EXPORT_LINES" >> "$SHELL_RC"
+        echo "[ok] Added MAILS_* env vars to $SHELL_RC"
+        echo "  Run: source $SHELL_RC  (or open a new terminal)"
+      fi
+    else
+      echo ""
+      echo "[!!] Could not find shell profile (.zshrc/.bashrc/.bash_profile)."
+      echo "  Add these lines to your shell profile manually:"
+      echo "$EXPORT_LINES"
     fi
     ;;
 
