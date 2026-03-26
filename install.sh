@@ -4,18 +4,18 @@
 
 set -e
 
-echo "🔧 mails-skills installer"
+echo "mails-skills installer"
 echo ""
 
 # Detect platform
 PLATFORM=""
 if [ -d "$HOME/.claude" ]; then
   PLATFORM="claude-code"
-  echo "✓ Detected: Claude Code"
+  echo "[ok] Detected: Claude Code"
 fi
 if [ -d "$HOME/.openclaw" ] || [ -d "$HOME/openclaw" ]; then
   PLATFORM="openclaw"
-  echo "✓ Detected: OpenClaw"
+  echo "[ok] Detected: OpenClaw"
 fi
 
 if [ -z "$PLATFORM" ]; then
@@ -28,15 +28,29 @@ if [ -z "$PLATFORM" ]; then
     1) PLATFORM="claude-code" ;;
     2) PLATFORM="openclaw" ;;
     3) PLATFORM="universal" ;;
-    *) echo "Invalid choice"; exit 1 ;;
+    *) echo "Error: Invalid choice"; exit 1 ;;
   esac
 fi
 
 # Collect config
 echo ""
 read -p "Worker API URL (e.g. https://mails-worker.xxx.workers.dev): " WORKER_URL
+if [ -z "$WORKER_URL" ]; then
+  echo "Error: Worker API URL is required"; exit 1
+fi
+
 read -p "Auth Token: " AUTH_TOKEN
+if [ -z "$AUTH_TOKEN" ]; then
+  echo "Error: Auth Token is required"; exit 1
+fi
+
 read -p "Mailbox address (e.g. hi@yourdomain.com): " MAILBOX
+if [ -z "$MAILBOX" ]; then
+  echo "Error: Mailbox address is required"; exit 1
+fi
+
+# Strip trailing slash from WORKER_URL
+WORKER_URL="${WORKER_URL%/}"
 
 echo ""
 echo "Configuring for $PLATFORM..."
@@ -52,43 +66,59 @@ case $PLATFORM in
         -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
         -e "s|YOUR_MAILBOX|$MAILBOX|g" \
         "$SKILL_SRC" > "$SKILL_DST"
-    echo "✓ Skill installed to $SKILL_DST"
+    echo "[ok] Skill installed to $SKILL_DST"
 
     # Also install mails CLI if not present
     if ! command -v mails &> /dev/null; then
       echo ""
       read -p "Install mails CLI? (recommended) [y/N]: " install_cli
       if [ "$install_cli" = "y" ] || [ "$install_cli" = "Y" ]; then
-        npm install -g mails
-        mails config set worker_url "$WORKER_URL"
-        mails config set worker_token "$AUTH_TOKEN"
-        mails config set mailbox "$MAILBOX"
-        mails config set default_from "$MAILBOX"
-        echo "✓ mails CLI configured"
+        if ! command -v npm &> /dev/null; then
+          echo "Error: npm is not installed. Install Node.js first: https://nodejs.org/"
+          echo "  Then run: npm install -g mails"
+        else
+          npm install -g mails
+          mails config set worker_url "$WORKER_URL"
+          mails config set worker_token "$AUTH_TOKEN"
+          mails config set mailbox "$MAILBOX"
+          mails config set default_from "$MAILBOX"
+          echo "[ok] mails CLI configured"
+        fi
       fi
     else
       mails config set worker_url "$WORKER_URL"
       mails config set worker_token "$AUTH_TOKEN"
       mails config set mailbox "$MAILBOX"
       mails config set default_from "$MAILBOX"
-      echo "✓ mails CLI configured"
+      echo "[ok] mails CLI configured"
     fi
     ;;
 
   openclaw)
     SKILL_SRC="$SCRIPT_DIR/skills/openclaw/email-agent.md"
+    INSTALLED=false
     # Try common OpenClaw skill paths
-    for dir in "$HOME/.openclaw/skills" "$HOME/openclaw/skills" "./skills"; do
-      if [ -d "$dir" ] || [ -d "$(dirname "$dir")" ]; then
+    for dir in "$HOME/.openclaw/skills" "$HOME/openclaw/skills"; do
+      if [ -d "$(dirname "$dir")" ]; then
         mkdir -p "$dir"
         sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
             -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
             -e "s|YOUR_MAILBOX|$MAILBOX|g" \
             "$SKILL_SRC" > "$dir/email-agent.md"
-        echo "✓ Skill installed to $dir/email-agent.md"
+        echo "[ok] Skill installed to $dir/email-agent.md"
+        INSTALLED=true
         break
       fi
     done
+    if [ "$INSTALLED" = false ]; then
+      # Fallback: save to current directory
+      sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
+          -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
+          -e "s|YOUR_MAILBOX|$MAILBOX|g" \
+          "$SKILL_SRC" > "./email-agent.md"
+      echo "[ok] Skill saved to ./email-agent.md (OpenClaw directory not found)"
+      echo "  Move this file to your OpenClaw skills directory."
+    fi
     ;;
 
   universal)
@@ -98,7 +128,7 @@ case $PLATFORM in
         -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
         -e "s|YOUR_MAILBOX|$MAILBOX|g" \
         "$SKILL_SRC" > "$SKILL_DST"
-    echo "✓ Skill saved to $SKILL_DST"
+    echo "[ok] Skill saved to $SKILL_DST"
     echo "  Add this file to your agent's system prompt or context."
     ;;
 esac

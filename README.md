@@ -7,10 +7,11 @@ Give your AI agent an email address. Works with Claude Code, OpenClaw, and any L
 After setup, your agent can:
 
 - **Receive emails** — check inbox, search, read details
-- **Send emails** — compose and send from its own address
+- **Send emails** — compose and send from its own address, with optional attachments
 - **Extract verification codes** — sign up for services automatically
-- **Monitor inbox** — react to incoming emails
+- **Monitor inbox** — react to incoming emails via polling or webhook
 - **Manage emails** — delete processed emails to avoid duplicates
+- **Download attachments** — access files attached to received emails
 
 ## Quick Start
 
@@ -95,9 +96,11 @@ Skill file teaches the agent what it can do
 mails Worker (Cloudflare)
     │
     ├── Receive: Cloudflare Email Routing → Worker → D1
-    ├── Send: Worker → Resend API → SMTP
+    ├── Send: Worker → Resend API → SMTP (with attachments)
     ├── Search: FTS5 full-text search in D1
-    └── Code: Auto-extract 4-8 digit verification codes
+    ├── Code: Auto-extract 4-8 digit verification codes
+    ├── Attachments: Stored in R2, downloadable via API
+    └── Webhook: POST notification on email received
 ```
 
 ## Supported Agent Platforms
@@ -118,7 +121,7 @@ Agent: I need to sign up for example.com
 1. Agent fills registration form with hi@genedai.space
 2. Agent submits form
 3. Agent calls: GET /api/code?timeout=60
-4. API returns: { "code": "483920" }
+4. API returns: { "id": "...", "code": "483920", "from": "noreply@example.com", "subject": "...", "received_at": "..." }
 5. Agent enters code on verification page
 6. Registration complete!
 ```
