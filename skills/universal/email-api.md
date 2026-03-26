@@ -199,7 +199,7 @@ Webhook headers: `X-Webhook-Event`, `X-Webhook-Id`, `X-Webhook-Signature` (HMAC-
 ## Constraints
 
 - `from` must match your mailbox address
-- Code extraction: 4-8 digit codes, supports EN/ZH/JA/KO
+- Code extraction: 4-8 character alphanumeric codes, supports EN/ZH/JA/KO
 - Send body limits: text 500KB, HTML 1MB
 - Inbound storage limits: text 50KB, HTML 100KB (truncated on receive)
 - Subject max 998 characters

@@ -52,6 +52,12 @@ fi
 # Strip trailing slash from WORKER_URL
 WORKER_URL="${WORKER_URL%/}"
 
+# Escape sed special characters in replacement strings (& and \ are special in sed)
+escape_sed() { printf '%s' "$1" | sed 's/[&\\/|]/\\&/g'; }
+WORKER_URL_ESC="$(escape_sed "$WORKER_URL")"
+AUTH_TOKEN_ESC="$(escape_sed "$AUTH_TOKEN")"
+MAILBOX_ESC="$(escape_sed "$MAILBOX")"
+
 echo ""
 echo "Configuring for $PLATFORM..."
 
@@ -62,9 +68,9 @@ case $PLATFORM in
     SKILL_SRC="$SCRIPT_DIR/skills/claude-code/email.md"
     SKILL_DST="$HOME/.claude/skills/email.md"
     mkdir -p "$HOME/.claude/skills"
-    sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
-        -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
-        -e "s|YOUR_MAILBOX|$MAILBOX|g" \
+    sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
+        -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
+        -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
         "$SKILL_SRC" > "$SKILL_DST"
     echo "[ok] Skill installed to $SKILL_DST"
 
@@ -101,9 +107,9 @@ case $PLATFORM in
     for dir in "$HOME/.openclaw/skills" "$HOME/openclaw/skills"; do
       if [ -d "$(dirname "$dir")" ]; then
         mkdir -p "$dir"
-        sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
-            -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
-            -e "s|YOUR_MAILBOX|$MAILBOX|g" \
+        sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
+            -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
+            -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
             "$SKILL_SRC" > "$dir/email-agent.md"
         echo "[ok] Skill installed to $dir/email-agent.md"
         INSTALLED=true
@@ -112,9 +118,9 @@ case $PLATFORM in
     done
     if [ "$INSTALLED" = false ]; then
       # Fallback: save to current directory
-      sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
-          -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
-          -e "s|YOUR_MAILBOX|$MAILBOX|g" \
+      sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
+          -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
+          -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
           "$SKILL_SRC" > "./email-agent.md"
       echo "[ok] Skill saved to ./email-agent.md (OpenClaw directory not found)"
       echo "  Move this file to your OpenClaw skills directory."
@@ -124,9 +130,9 @@ case $PLATFORM in
   universal)
     SKILL_SRC="$SCRIPT_DIR/skills/universal/email-api.md"
     SKILL_DST="./email-api.md"
-    sed -e "s|YOUR_WORKER_URL|$WORKER_URL|g" \
-        -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN|g" \
-        -e "s|YOUR_MAILBOX|$MAILBOX|g" \
+    sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
+        -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
+        -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
         "$SKILL_SRC" > "$SKILL_DST"
     echo "[ok] Skill saved to $SKILL_DST"
     echo "  Add this file to your agent's system prompt or context."

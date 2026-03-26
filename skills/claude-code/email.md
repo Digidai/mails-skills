@@ -118,7 +118,7 @@ mails send --to user@example.com --subject "Task Complete" --body "Your report i
 ## Constraints
 
 - `from` address must be YOUR_MAILBOX (security restriction)
-- Verification code extraction supports 4-8 digit codes in EN/ZH/JA/KO
+- Verification code extraction supports 4-8 character alphanumeric codes in EN/ZH/JA/KO
 - Send body limits: text 500KB, html 1MB
 - Inbound storage limits: text 50KB, html 100KB (truncated on receive)
 - Max 50 recipients per email
