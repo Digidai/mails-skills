@@ -13,76 +13,113 @@ After setup, your agent can:
 - **Manage emails** — delete processed emails to avoid duplicates
 - **Download attachments** — access files attached to received emails
 
-## Quick Start
+## 30-Second Quick Start (Hosted)
 
-### 1. Get a mailbox
+Already have `mails` installed? One command:
 
-You need a running [mails](https://github.com/chekusu/mails) Worker. Two options:
+```bash
+git clone https://github.com/Digidai/mails-skills && cd mails-skills && ./install.sh
+```
 
-**Hosted (easiest):**
+The installer auto-detects your `~/.mails/config.json` from `mails claim` — no manual input needed.
+
+## Full Setup (from scratch)
+
+### Step 1: Get a mailbox
+
+**Hosted (easiest — 2 commands):**
 ```bash
 npm install -g mails
 mails claim myagent        # Get myagent@mails.dev for free
 ```
 
 **Self-hosted (your domain):**
-Deploy the Worker to Cloudflare — see [mails self-hosted guide](https://github.com/chekusu/mails#self-hosted-deployment-full-guide).
 
-### 2. Install the skill
+| What you need | Why | Cost |
+|---|---|---|
+| A domain on Cloudflare | Email address `agent@yourdomain.com` | You already own one |
+| Resend account | SMTP delivery | Free 100 emails/day |
+
+```bash
+# 1. Clone and deploy the Worker
+git clone https://github.com/chekusu/mails && cd mails/worker
+bun install
+
+# 2. Create D1 database
+wrangler d1 create mails
+# → Copy the database_id into wrangler.toml
+
+# 3. Initialize schema
+wrangler d1 execute mails --file=schema.sql
+
+# 4. Set secrets
+wrangler secret put RESEND_API_KEY     # Your Resend API key
+wrangler secret put WEBHOOK_SECRET     # Optional: for webhook HMAC signing
+
+# 5. Deploy
+wrangler deploy
+# → Note the Worker URL: https://mails-worker.<subdomain>.workers.dev
+
+# 6. Enable Email Routing in Cloudflare Dashboard
+#    Domain → Email → Email Routing → Enable
+#    Catch-all → Send to Worker → your-worker
+
+# 7. Add Resend DNS records (SPF + DKIM) in Cloudflare DNS
+#    See: https://resend.com/docs/dashboard/domains/introduction
+
+# 8. Create an auth token
+wrangler d1 execute mails --command \
+  "INSERT INTO auth_tokens (token, mailbox) VALUES ('$(openssl rand -hex 24)', 'agent@yourdomain.com')"
+```
+
+### Step 2: Install the skill
+
+```bash
+git clone https://github.com/Digidai/mails-skills && cd mails-skills
+./install.sh
+```
+
+The installer will:
+1. Auto-detect your platform (Claude Code / OpenClaw)
+2. Auto-read credentials from `~/.mails/config.json` (if available)
+3. Install the skill to the correct location
+4. Verify the connection works
+
+**That's it.** Tell your agent "Check my inbox" to test.
+
+### Manual install (without install.sh)
 
 **Claude Code:**
 ```bash
-# Copy to your global skills directory
 cp skills/claude-code/email.md ~/.claude/skills/email.md
-
-# Or add to your project's CLAUDE.md (append the content)
-cat skills/claude-code/email.md >> your-project/CLAUDE.md
+# Edit the file: replace YOUR_WORKER_URL, YOUR_AUTH_TOKEN, YOUR_MAILBOX
 ```
 
 **OpenClaw:**
 ```bash
-# Copy the skill folder to your OpenClaw skills directory
 cp -r skills/openclaw ~/.openclaw/skills/email
-
-# Set environment variables for the agent
 export MAILS_API_URL="https://your-worker.workers.dev"
 export MAILS_AUTH_TOKEN="your-token"
-export MAILS_MAILBOX="hi@yourdomain.com"
+export MAILS_MAILBOX="agent@yourdomain.com"
 ```
-
-Or for workspace-level: copy to `<workspace>/skills/email/SKILL.md`
 
 **Any other agent:**
 ```bash
-# Use the universal skill — just HTTP API instructions
+# Copy the universal API reference into your agent's system prompt
 cat skills/universal/email-api.md
 ```
-
-### 3. Configure
-
-Edit the skill file and replace the placeholders:
-
-| Placeholder | Value | Where to get it |
-|---|---|---|
-| `YOUR_WORKER_URL` | `https://your-worker.workers.dev` | From `wrangler deploy` output |
-| `YOUR_AUTH_TOKEN` | Auth token for API access | From `auth_tokens` D1 table or `mails claim` |
-| `YOUR_MAILBOX` | `name@yourdomain.com` | Your configured mailbox address |
-
-### 4. Test
-
-Tell your agent: "Check my inbox" — it should call the API and show your emails.
 
 ## Skills
 
 ```
 skills/
 ├── claude-code/
-│   └── email.md          # Claude Code skill (CLAUDE.md format)
+│   └── email.md           # Claude Code skill (CLAUDE.md format)
 ├── openclaw/
-│   ├── SKILL.md           # OpenClaw AgentSkills format (with YAML frontmatter)
-│   └── email-agent.md    # Alternative: plain system prompt format
+│   ├── SKILL.md            # OpenClaw AgentSkills format (YAML frontmatter + curl examples)
+│   └── email-agent.md     # Alternative: plain system prompt format
 └── universal/
-    └── email-api.md      # Universal — works with any LLM agent
+    └── email-api.md       # Universal — Python, JavaScript, cURL examples
 ```
 
 ## How it works
@@ -112,21 +149,21 @@ mails Worker (Cloudflare)
 
 | Platform | Skill Type | Install |
 |---|---|---|
-| Claude Code | CLAUDE.md / skill file | Copy to `~/.claude/skills/` |
-| OpenClaw | System prompt / skill | Copy to skills directory |
-| Cursor | Rules file | Add to `.cursorrules` |
-| Windsurf | Rules file | Add to `.windsurfrules` |
-| Custom agents | HTTP API reference | Include in system prompt |
+| Claude Code | CLAUDE.md / skill file | `./install.sh` or copy to `~/.claude/skills/` |
+| OpenClaw | SKILL.md (AgentSkills) | `./install.sh` or copy to skills directory |
+| Cursor | Rules file | Add `skills/universal/email-api.md` to `.cursorrules` |
+| Windsurf | Rules file | Add `skills/universal/email-api.md` to `.windsurfrules` |
+| Custom agents | HTTP API reference | Include `skills/universal/email-api.md` in system prompt |
 
 ## Example: Agent registers for a service
 
 ```
 Agent: I need to sign up for example.com
 
-1. Agent fills registration form with hi@genedai.space
+1. Agent fills registration form with agent@yourdomain.com
 2. Agent submits form
 3. Agent calls: GET /api/code?timeout=60
-4. API returns: { "id": "...", "code": "483920", "from": "noreply@example.com", "subject": "...", "received_at": "..." }
+4. API returns: { "code": "483920", ... }
 5. Agent enters code on verification page
 6. Registration complete!
 ```
