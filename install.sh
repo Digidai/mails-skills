@@ -101,29 +101,23 @@ case $PLATFORM in
     ;;
 
   openclaw)
-    SKILL_SRC="$SCRIPT_DIR/skills/openclaw/email-agent.md"
+    SKILL_SRC="$SCRIPT_DIR/skills/openclaw/SKILL.md"
     INSTALLED=false
     # Try common OpenClaw skill paths
     for dir in "$HOME/.openclaw/skills" "$HOME/openclaw/skills"; do
       if [ -d "$(dirname "$dir")" ]; then
-        mkdir -p "$dir"
-        sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
-            -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
-            -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
-            "$SKILL_SRC" > "$dir/email-agent.md"
-        echo "[ok] Skill installed to $dir/email-agent.md"
+        mkdir -p "$dir/email"
+        cp "$SKILL_SRC" "$dir/email/SKILL.md"
+        echo "[ok] Skill installed to $dir/email/SKILL.md"
         INSTALLED=true
         break
       fi
     done
     if [ "$INSTALLED" = false ]; then
-      # Fallback: save to current directory
-      sed -e "s|YOUR_WORKER_URL|$WORKER_URL_ESC|g" \
-          -e "s|YOUR_AUTH_TOKEN|$AUTH_TOKEN_ESC|g" \
-          -e "s|YOUR_MAILBOX|$MAILBOX_ESC|g" \
-          "$SKILL_SRC" > "./email-agent.md"
-      echo "[ok] Skill saved to ./email-agent.md (OpenClaw directory not found)"
-      echo "  Move this file to your OpenClaw skills directory."
+      mkdir -p "./email"
+      cp "$SKILL_SRC" "./email/SKILL.md"
+      echo "[ok] Skill saved to ./email/SKILL.md (OpenClaw directory not found)"
+      echo "  Move the email/ folder to your OpenClaw skills directory."
     fi
     ;;
 
@@ -141,6 +135,17 @@ esac
 
 echo ""
 echo "Done! Your agent now has email at: $MAILBOX"
+
+if [ "$PLATFORM" = "openclaw" ]; then
+  echo ""
+  echo "Set these environment variables for your OpenClaw agent:"
+  echo "  export MAILS_API_URL=\"$WORKER_URL\""
+  echo "  export MAILS_AUTH_TOKEN=\"$AUTH_TOKEN\""
+  echo "  export MAILS_MAILBOX=\"$MAILBOX\""
+  echo ""
+  echo "Add them to your shell profile (~/.bashrc or ~/.zshrc) or OpenClaw's .env file."
+fi
+
 echo ""
 echo "Test it:"
 echo "  curl -s -H \"Authorization: Bearer $AUTH_TOKEN\" $WORKER_URL/api/me"

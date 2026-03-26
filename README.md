@@ -41,12 +41,16 @@ cat skills/claude-code/email.md >> your-project/CLAUDE.md
 
 **OpenClaw:**
 ```bash
-# Copy the skill to your OpenClaw skills directory
-cp skills/openclaw/email-agent.md /path/to/openclaw/skills/
+# Copy the skill folder to your OpenClaw skills directory
+cp -r skills/openclaw ~/.openclaw/skills/email
 
-# Or add to your agent's system prompt
-cat skills/openclaw/email-agent.md
+# Set environment variables for the agent
+export MAILS_API_URL="https://your-worker.workers.dev"
+export MAILS_AUTH_TOKEN="your-token"
+export MAILS_MAILBOX="hi@yourdomain.com"
 ```
+
+Or for workspace-level: copy to `<workspace>/skills/email/SKILL.md`
 
 **Any other agent:**
 ```bash
@@ -75,7 +79,8 @@ skills/
 ├── claude-code/
 │   └── email.md          # Claude Code skill (CLAUDE.md format)
 ├── openclaw/
-│   └── email-agent.md    # OpenClaw agent skill
+│   ├── SKILL.md           # OpenClaw AgentSkills format (with YAML frontmatter)
+│   └── email-agent.md    # Alternative: plain system prompt format
 └── universal/
     └── email-api.md      # Universal — works with any LLM agent
 ```
