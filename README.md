@@ -209,10 +209,29 @@ install.sh             # Interactive + non-interactive installer
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and PRs welcome.
 
-## Related
+## Ecosystem
 
-- **[mails](https://github.com/chekusu/mails)** -- The email server (Cloudflare Worker) that powers this
-- **[mails CLI](https://www.npmjs.com/package/mails)** -- `npm install -g mails` for terminal email access
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        mails ecosystem                       │
+│                                                              │
+│  ┌──────────────┐    ┌──────────────────┐    ┌───────────┐  │
+│  │  mails CLI   │    │  mails Worker    │    │   mails   │  │
+│  │  & SDK       │───▶│  (Cloudflare)    │◀───│  -skills  │  │
+│  │              │    │                  │    │           │  │
+│  │  npm i mails │    │  Receive + Send  │    │  Agent    │  │
+│  │              │    │  + Search + Code │    │  Skills   │  │
+│  └──────────────┘    └──────────────────┘    └───────────┘  │
+│    Human / Script        Infrastructure        AI Agents    │
+│                                                              │
+│  github.com/Digidai/mails    ←→    github.com/Digidai/mails-skills  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Project | What it is | Who uses it |
+|---|---|---|
+| **[mails](https://github.com/Digidai/mails)** | Email server (Worker) + CLI + SDK | Developers deploying email infra |
+| **[mails-skills](https://github.com/Digidai/mails-skills)** (this repo) | Skill files for AI agents | AI agents (Claude Code, OpenClaw, etc.) |
 
 ## License
 
