@@ -223,8 +223,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and PRs welcome.
 │  │              │    │  + Search + Code │    │  Skills   │  │
 │  └──────────────┘    └──────────────────┘    └───────────┘  │
 │    Human / Script        Infrastructure        AI Agents    │
-│                                                              │
-│  github.com/Digidai/mails    ←→    github.com/Digidai/mails-skills  │
 └─────────────────────────────────────────────────────────────┘
 ```
 

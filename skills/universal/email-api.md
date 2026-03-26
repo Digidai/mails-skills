@@ -93,6 +93,10 @@ with open("downloaded.pdf", "wb") as f:
 
 # Delete email
 requests.delete(f"{API}/api/email", headers=HEADERS, params={"id": emails[0]["id"]})
+
+# Check mailbox status
+status = requests.get(f"{API}/api/me", headers=HEADERS).json()
+print(status)  # {"worker": "mails-worker", "mailbox": "...", "send": true}
 ```
 
 ### JavaScript / TypeScript
@@ -136,6 +140,13 @@ await fetch(`${API}/api/send`, {
   })
 })
 
+// Read email detail
+const email = await fetch(`${API}/api/email?id=${emails[0].id}`, { headers }).then(r => r.json())
+
+// Download attachment
+const att = await fetch(`${API}/api/attachment?id=ATTACHMENT_ID`, { headers })
+const fileData = await att.arrayBuffer()
+
 // Delete email
 await fetch(`${API}/api/email?id=${emails[0].id}`, { method: "DELETE", headers })
 ```
@@ -166,6 +177,9 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   "$API/api/send" -d '{"from":"YOUR_MAILBOX","to":["user@example.com"],"subject":"Report","text":"See attached","attachments":[{"filename":"file.pdf","content":"BASE64...","content_type":"application/pdf"}]}'
 
+# Read email detail
+curl -s -H "Authorization: Bearer $TOKEN" "$API/api/email?id=EMAIL_ID"
+
 # Download attachment
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/attachment?id=ATTACHMENT_ID" -o file.pdf
 
@@ -174,6 +188,9 @@ curl -s -X DELETE -H "Authorization: Bearer $TOKEN" "$API/api/email?id=EMAIL_ID"
 
 # Status
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/me"
+
+# Health check (no auth required)
+curl -s "$API/health"
 ```
 
 ## Webhook (Automatic Notifications)

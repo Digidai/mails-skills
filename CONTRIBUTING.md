@@ -17,7 +17,7 @@ If you want to add support for a new AI agent platform:
 1. Create a new directory under `skills/your-platform/`
 2. Follow the format of existing skills -- the API reference is the same, only the format changes
 3. Update `install.sh` to support the new platform
-4. Update `README.md` with the new platform in the "Supported Agent Platforms" table
+4. Update `README.md` with the new platform in the "Supported Platforms" table
 5. Submit a pull request
 
 ### Improving Existing Skills
