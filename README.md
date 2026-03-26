@@ -14,7 +14,7 @@
 
 **Your agent needs an email address.** To sign up for services, receive verification codes, send notifications, or monitor an inbox -- it needs email. `mails-skills` gives any LLM agent that ability in under 2 minutes.
 
-## What can your agent do with email?
+## What Your Agent Can Do
 
 | Capability | Example |
 |---|---|
@@ -25,16 +25,16 @@
 | Download attachments | "Get the PDF from that invoice email" |
 | Auto-register for services | Full flow: fill form, wait for code, verify |
 
-## Quick Start (2 minutes)
+## Quick Start
 
-### Option A: Hosted (easiest -- 2 commands)
+### Option A: Hosted (2 commands)
 
 ```bash
 npm install -g mails          # Install the CLI
 mails claim myagent           # Claim myagent@mails.dev (free)
 ```
 
-Then install the skill for your agent:
+Then install the skill:
 
 ```bash
 git clone https://github.com/Digidai/mails-skills && cd mails-skills && ./install.sh
@@ -42,7 +42,7 @@ git clone https://github.com/Digidai/mails-skills && cd mails-skills && ./instal
 
 The installer auto-detects your config from `mails claim` -- no manual input needed.
 
-### Option B: Self-hosted (your own domain)
+### Option B: Self-hosted
 
 <details>
 <summary>Click to expand self-hosted setup</summary>
@@ -96,17 +96,16 @@ Your Agent (Claude Code / OpenClaw / Cursor / any LLM)
     |
     |  "Check inbox" / "Send email" / "Get verification code"
     v
-Skill file (installed locally, teaches the agent what it can do)
+Skill file (installed locally, teaches the agent the API)
     |
     |  HTTP API calls
     v
 mails Worker (Cloudflare Workers + D1 + R2)
-    |
-    |-- Receive: Cloudflare Email Routing -> Worker -> D1 database
-    |-- Send:    Worker -> Resend API -> SMTP delivery
-    |-- Search:  FTS5 full-text search across all emails
+    |-- Receive: Cloudflare Email Routing -> Worker -> D1
+    |-- Send:    Worker -> Resend API -> SMTP
+    |-- Search:  FTS5 full-text search
     |-- Codes:   Auto-extract 4-8 digit verification codes
-    |-- Files:   Attachments stored in R2, downloadable via API
+    |-- Files:   Attachments in R2, downloadable via API
     '-- Hooks:   Webhook POST on every received email
 ```
 
@@ -120,36 +119,27 @@ mails Worker (Cloudflare Workers + D1 + R2)
 | **Windsurf** | Rules file | Add `skills/universal/email-api.md` to `.windsurfrules` |
 | **Any agent** | HTTP API reference | Include `skills/universal/email-api.md` in system prompt |
 
-### Manual Install (without install.sh)
-
 <details>
-<summary>Claude Code</summary>
+<summary>Manual install (without install.sh)</summary>
 
+**Claude Code:**
 ```bash
 cp skills/claude-code/email.md ~/.claude/skills/email.md
-# Edit the file: replace YOUR_WORKER_URL, YOUR_AUTH_TOKEN, YOUR_MAILBOX
+# Edit: replace YOUR_WORKER_URL, YOUR_AUTH_TOKEN, YOUR_MAILBOX
 ```
-</details>
 
-<details>
-<summary>OpenClaw</summary>
-
+**OpenClaw:**
 ```bash
 cp -r skills/openclaw ~/.openclaw/skills/email
-
-# Add to ~/.zshrc or ~/.bashrc:
+# Add to ~/.zshrc:
 export MAILS_API_URL="https://your-worker.workers.dev"
 export MAILS_AUTH_TOKEN="your-token"
 export MAILS_MAILBOX="agent@yourdomain.com"
 ```
-</details>
 
-<details>
-<summary>Any other agent</summary>
-
+**Any other agent:**
 ```bash
-cat skills/universal/email-api.md
-# Copy this into your agent's system prompt or context file
+# Copy skills/universal/email-api.md into your agent's system prompt
 ```
 </details>
 
@@ -161,7 +151,7 @@ You:   "Sign up for an account on example.com using our email"
 Agent: 1. Opens example.com/register
        2. Fills in the form with agent@mails.dev
        3. Submits the form
-       4. Calls GET /api/code?timeout=60  (waits for verification email)
+       4. Calls GET /api/code?timeout=60
        5. Receives { "code": "483920" }
        6. Enters 483920 on the verification page
        7. "Done! Account created successfully."
@@ -171,65 +161,42 @@ Agent: 1. Opens example.com/register
 
 ```bash
 ./install.sh --url https://your-worker.workers.dev --token YOUR_TOKEN --mailbox agent@example.com
-```
 
-Or with environment variables:
-
-```bash
-MAILS_URL=https://your-worker.workers.dev \
-MAILS_TOKEN=YOUR_TOKEN \
-MAILS_MAILBOX=agent@example.com \
-./install.sh
+# Or with environment variables:
+MAILS_URL=https://your-worker.workers.dev MAILS_TOKEN=YOUR_TOKEN MAILS_MAILBOX=agent@example.com ./install.sh
 ```
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---|---|
-| `install.sh` says "python3 not found" | Install Python 3: `brew install python3` (macOS) or `apt install python3` (Linux) |
-| "Connection failed: invalid auth token" | Re-run `mails claim` or check your token in `~/.mails/config.json` |
-| "Cannot reach Worker URL" | Check the URL is correct and the Worker is deployed |
-| Agent says "I don't know how to send email" | Verify the skill file was installed: `ls ~/.claude/skills/email.md` |
-| Verification code not arriving | Check `GET /api/inbox` -- the email might not have a parseable code. Read the full email instead. |
+| `python3 not found` | `brew install python3` (macOS) or `apt install python3` (Linux) |
+| `invalid auth token` | Re-run `mails claim` or check `~/.mails/config.json` |
+| Cannot reach Worker URL | Verify the URL and that the Worker is deployed |
+| Agent doesn't know about email | Check skill file exists: `ls ~/.claude/skills/email.md` |
+| Verification code not found | The email may lack a parseable code. Read the full email with `GET /api/email?id=...` |
+| `mails claim` hangs | Check your internet connection; the hosted service may be temporarily unavailable |
 
 ## Project Structure
 
 ```
 skills/
-  claude-code/
-    email.md           # Claude Code skill (CLAUDE.md format)
-  openclaw/
-    SKILL.md           # OpenClaw AgentSkills format (YAML frontmatter)
-  universal/
-    email-api.md       # Universal API reference (Python, JS, cURL)
-install.sh             # Interactive + non-interactive installer
+  claude-code/email.md     # Claude Code skill
+  openclaw/SKILL.md        # OpenClaw AgentSkills format
+  universal/email-api.md   # Universal API reference (Python, JS, cURL)
+install.sh                 # Interactive + non-interactive installer
 ```
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and PRs welcome.
 
 ## Ecosystem
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        mails ecosystem                       │
-│                                                              │
-│  ┌──────────────┐    ┌──────────────────┐    ┌───────────┐  │
-│  │  mails CLI   │    │  mails Worker    │    │   mails   │  │
-│  │  & SDK       │───▶│  (Cloudflare)    │◀───│  -skills  │  │
-│  │              │    │                  │    │           │  │
-│  │  npm i mails │    │  Receive + Send  │    │  Agent    │  │
-│  │              │    │  + Search + Code │    │  Skills   │  │
-│  └──────────────┘    └──────────────────┘    └───────────┘  │
-│    Human / Script        Infrastructure        AI Agents    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-| Project | What it is | Who uses it |
+| Project | Description | Users |
 |---|---|---|
 | **[mails](https://github.com/Digidai/mails)** | Email server (Worker) + CLI + SDK | Developers deploying email infra |
 | **[mails-skills](https://github.com/Digidai/mails-skills)** (this repo) | Skill files for AI agents | AI agents (Claude Code, OpenClaw, etc.) |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

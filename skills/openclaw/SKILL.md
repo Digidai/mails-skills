@@ -1,6 +1,6 @@
 ---
 name: email
-description: "Send and receive emails. Check inbox, search, extract verification codes, send with attachments, delete processed emails."
+description: "Send and receive emails via HTTP API. Use when the agent needs to: sign up for services and enter verification codes, monitor an inbox for incoming messages, send notifications or reports, search emails by keyword, download attachments, or interact with any email-based workflow."
 version: 1.0.0
 metadata:
   openclaw:
@@ -16,87 +16,48 @@ metadata:
 
 # Email Skill
 
-You have an email address and can send/receive emails via HTTP API.
-
-## Configuration
-
-Your email is configured via environment variables:
-- `MAILS_MAILBOX` — your email address
-- `MAILS_API_URL` — the Worker API endpoint
-- `MAILS_AUTH_TOKEN` — authentication token
-
-## How to Call the API
-
-Use `curl` with the auth header. Always use the environment variables:
-
-```bash
-curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox"
-```
+You have the email address `$MAILS_MAILBOX`. Use `curl` with `$MAILS_API_URL` and `$MAILS_AUTH_TOKEN`.
 
 ## API Reference
 
-### Check Inbox
+### Inbox
 
 ```bash
 # List recent emails
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox"
 
-# Search emails
-curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?query=keyword"
-
-# Filter by direction
-curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?direction=inbound"
-
-# Pagination
-curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?limit=10&offset=20"
+# Search / filter / paginate
+curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?query=keyword&direction=inbound&limit=10&offset=0"
 ```
 
-Response: `{ "emails": [{ "id", "mailbox", "from_address", "from_name", "subject", "code", "direction", "status", "received_at", "has_attachments", "attachment_count" }] }`
+Response: `{ "emails": [{ "id", "from_address", "from_name", "subject", "code", "direction", "status", "received_at", "has_attachments", "attachment_count" }] }`
 
-### Read Email Details
+### Read Email
 
 ```bash
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/email?id=EMAIL_ID"
 ```
 
-Returns full email with body_text, body_html, headers, metadata, and attachments list.
+Returns full email with `body_text`, `body_html`, headers, metadata, and attachments list.
 
 ### Wait for Verification Code
 
 ```bash
-# Wait up to 60 seconds for a verification code email
+# Long-poll up to 60s; returns { "code": "483920" } or { "code": null }
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/code?timeout=60"
 
-# Only codes received after a specific time
+# Only codes received after a timestamp
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/code?timeout=60&since=2025-01-01T00:00:00Z"
 ```
-
-Response: `{ "id": "uuid", "code": "483920", "from": "noreply@example.com", "subject": "Your code", "received_at": "..." }`
-On timeout: `{ "code": null }`
 
 ### Send Email
 
 ```bash
-# Simple text email
 curl -s -X POST \
   -H "Authorization: Bearer $MAILS_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   "$MAILS_API_URL/api/send" \
   -d "{\"from\":\"$MAILS_MAILBOX\",\"to\":[\"recipient@example.com\"],\"subject\":\"Subject\",\"text\":\"Content\"}"
-
-# With HTML
-curl -s -X POST \
-  -H "Authorization: Bearer $MAILS_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$MAILS_API_URL/api/send" \
-  -d "{\"from\":\"$MAILS_MAILBOX\",\"to\":[\"recipient@example.com\"],\"subject\":\"Subject\",\"html\":\"<h1>Hello</h1>\"}"
-
-# With attachment (base64-encoded content)
-curl -s -X POST \
-  -H "Authorization: Bearer $MAILS_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$MAILS_API_URL/api/send" \
-  -d "{\"from\":\"$MAILS_MAILBOX\",\"to\":[\"recipient@example.com\"],\"subject\":\"Report\",\"text\":\"See attached\",\"attachments\":[{\"filename\":\"file.pdf\",\"content\":\"BASE64_CONTENT\",\"content_type\":\"application/pdf\"}]}"
 ```
 
 Send fields:
@@ -117,65 +78,36 @@ Send fields:
 curl -s -X DELETE -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/email?id=EMAIL_ID"
 ```
 
-Deletes email + attachments + R2 objects. Use after processing to avoid duplicates.
-
 ### Download Attachment
 
 ```bash
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/attachment?id=ATTACHMENT_ID" -o filename.pdf
 ```
 
-### Check Status
+### Status / Health
 
 ```bash
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/me"
+# Returns: { "worker": "mails-worker", "mailbox": "...", "send": true }
+
+curl -s "$MAILS_API_URL/health"   # No auth required
 ```
 
-Returns: `{ "worker": "mails-worker", "mailbox": "...", "send": true }`
+## Common Flows
 
-### Health Check (no auth required)
+**Sign up for a service:**
+1. Fill form with `$MAILS_MAILBOX`, submit
+2. `curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/code?timeout=60"`
+3. Enter the `code` from the response
 
-```bash
-curl -s "$MAILS_API_URL/health"
-```
-
-Returns: `{ "ok": true }`
-
-## Usage Patterns
-
-### Sign up for a service (verification code flow)
-
-1. Fill registration form with `$MAILS_MAILBOX`
-2. Submit the form
-3. Wait for code: `curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/code?timeout=60"`
-4. Parse the `code` field from the JSON response
-5. Enter the code on the verification page
-
-### Monitor inbox and process emails
-
-1. Check inbox: `curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox"`
-2. For each email, read details: `curl ... "$MAILS_API_URL/api/email?id=<id>"`
-3. Process the content
-4. Delete when done: `curl -s -X DELETE -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/email?id=<id>"`
-
-### Search for specific emails
-
-```bash
-curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?query=password+reset&direction=inbound"
-```
-
-### Send a notification
-
-```bash
-curl -s -X POST -H "Authorization: Bearer $MAILS_AUTH_TOKEN" -H "Content-Type: application/json" \
-  "$MAILS_API_URL/api/send" \
-  -d "{\"from\":\"$MAILS_MAILBOX\",\"to\":[\"user@example.com\"],\"subject\":\"Task Complete\",\"text\":\"Your report is ready.\"}"
-```
+**Process inbox:**
+1. `GET /api/inbox` -- list emails
+2. `GET /api/email?id=<id>` -- read details
+3. `DELETE /api/email?id=<id>` -- clean up after processing
 
 ## Constraints
 
-- `from` must match `$MAILS_MAILBOX` (enforced by server)
-- Verification codes: 4-8 alphanumeric characters, supports EN/ZH/JA/KO
-- Send limits: text 500KB, HTML 1MB, subject 998 chars, max 50 recipients
+- `from` must match `$MAILS_MAILBOX` (enforced server-side)
+- Verification codes: 4-8 alphanumeric characters (EN/ZH/JA/KO)
 - Code wait timeout max 55 seconds
 - Search uses FTS5 full-text search
