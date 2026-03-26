@@ -131,6 +131,16 @@ curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/attachm
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/me"
 ```
 
+Returns: `{ "worker": "mails-worker", "mailbox": "...", "send": true }`
+
+### Health Check (no auth required)
+
+```bash
+curl -s "$MAILS_API_URL/health"
+```
+
+Returns: `{ "ok": true }`
+
 ## Usage Patterns
 
 ### Sign up for a service (verification code flow)

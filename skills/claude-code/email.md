@@ -1,6 +1,8 @@
 # Email Capability
 
-You have an email address and can send/receive emails.
+You have a working email address: **YOUR_MAILBOX**
+
+You can send and receive emails, wait for verification codes, search your inbox, and download attachments.
 
 ## Configuration
 
@@ -8,7 +10,7 @@ You have an email address and can send/receive emails.
 - **Worker API**: YOUR_WORKER_URL
 - **Auth Token**: YOUR_AUTH_TOKEN
 
-## CLI Usage (recommended if `mails` is installed)
+## CLI Usage (preferred -- use this if `mails` is installed)
 
 ```bash
 # Check inbox
@@ -80,6 +82,9 @@ curl -s -X DELETE -H "Authorization: Bearer $TOKEN" "$API/api/email?id=EMAIL_ID"
 
 # Check mailbox status
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/me"
+
+# Health check (no auth required)
+curl -s "$API/health"
 ```
 
 ## Send API Fields
