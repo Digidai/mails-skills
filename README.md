@@ -1,0 +1,128 @@
+# mails-skills
+
+Give your AI agent an email address. Works with Claude Code, OpenClaw, and any LLM agent that can call HTTP APIs or run shell commands.
+
+## What this does
+
+After setup, your agent can:
+
+- **Receive emails** — check inbox, search, read details
+- **Send emails** — compose and send from its own address
+- **Extract verification codes** — sign up for services automatically
+- **Monitor inbox** — react to incoming emails
+- **Manage emails** — delete processed emails to avoid duplicates
+
+## Quick Start
+
+### 1. Get a mailbox
+
+You need a running [mails](https://github.com/chekusu/mails) Worker. Two options:
+
+**Hosted (easiest):**
+```bash
+npm install -g mails
+mails claim myagent        # Get myagent@mails.dev for free
+```
+
+**Self-hosted (your domain):**
+Deploy the Worker to Cloudflare — see [mails self-hosted guide](https://github.com/chekusu/mails#self-hosted-deployment-full-guide).
+
+### 2. Install the skill
+
+**Claude Code:**
+```bash
+# Copy to your global skills directory
+cp skills/claude-code/email.md ~/.claude/skills/email.md
+
+# Or add to your project's CLAUDE.md (append the content)
+cat skills/claude-code/email.md >> your-project/CLAUDE.md
+```
+
+**OpenClaw:**
+```bash
+# Copy the skill to your OpenClaw skills directory
+cp skills/openclaw/email-agent.md /path/to/openclaw/skills/
+
+# Or add to your agent's system prompt
+cat skills/openclaw/email-agent.md
+```
+
+**Any other agent:**
+```bash
+# Use the universal skill — just HTTP API instructions
+cat skills/universal/email-api.md
+```
+
+### 3. Configure
+
+Edit the skill file and replace the placeholders:
+
+| Placeholder | Value | Where to get it |
+|---|---|---|
+| `YOUR_WORKER_URL` | `https://your-worker.workers.dev` | From `wrangler deploy` output |
+| `YOUR_AUTH_TOKEN` | Auth token for API access | From `auth_tokens` D1 table or `mails claim` |
+| `YOUR_MAILBOX` | `name@yourdomain.com` | Your configured mailbox address |
+
+### 4. Test
+
+Tell your agent: "Check my inbox" — it should call the API and show your emails.
+
+## Skills
+
+```
+skills/
+├── claude-code/
+│   └── email.md          # Claude Code skill (CLAUDE.md format)
+├── openclaw/
+│   └── email-agent.md    # OpenClaw agent skill
+└── universal/
+    └── email-api.md      # Universal — works with any LLM agent
+```
+
+## How it works
+
+```
+Your Agent
+    │
+    │  "Check inbox" / "Send email" / "Get verification code"
+    │
+    ▼
+Skill file teaches the agent what it can do
+    │
+    │  HTTP API call or CLI command
+    │
+    ▼
+mails Worker (Cloudflare)
+    │
+    ├── Receive: Cloudflare Email Routing → Worker → D1
+    ├── Send: Worker → Resend API → SMTP
+    ├── Search: FTS5 full-text search in D1
+    └── Code: Auto-extract 4-8 digit verification codes
+```
+
+## Supported Agent Platforms
+
+| Platform | Skill Type | Install |
+|---|---|---|
+| Claude Code | CLAUDE.md / skill file | Copy to `~/.claude/skills/` |
+| OpenClaw | System prompt / skill | Copy to skills directory |
+| Cursor | Rules file | Add to `.cursorrules` |
+| Windsurf | Rules file | Add to `.windsurfrules` |
+| Custom agents | HTTP API reference | Include in system prompt |
+
+## Example: Agent registers for a service
+
+```
+Agent: I need to sign up for example.com
+
+1. Agent fills registration form with hi@genedai.space
+2. Agent submits form
+3. Agent calls: GET /api/code?timeout=60
+4. API returns: { "code": "483920" }
+5. Agent enters code on verification page
+6. Registration complete!
+```
+
+## License
+
+MIT
