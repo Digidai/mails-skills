@@ -1,0 +1,28 @@
+{
+  "name": "mails-skills",
+  "version": "1.0.0",
+  "description": "Email skills for AI agents — Claude Code, OpenClaw, Cursor. One command to give your agent an email address.",
+  "bin": {
+    "mails-skills": "bin/install.mjs"
+  },
+  "files": [
+    "bin",
+    "skills"
+  ],
+  "keywords": [
+    "ai-agent",
+    "email",
+    "claude-code",
+    "openclaw",
+    "skills",
+    "mails",
+    "verification-code"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Digidai/mails-skills.git"
+  },
+  "homepage": "https://mails0.com",
+  "author": "Gene Dai",
+  "license": "MIT"
+}
