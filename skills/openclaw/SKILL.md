@@ -1,5 +1,5 @@
 ---
-name: email
+name: Mails for Agent
 description: "Send and receive emails via HTTP API. Use when the agent needs to: sign up for services and enter verification codes, monitor an inbox for incoming messages, send notifications or reports, search emails by keyword, download attachments, or interact with any email-based workflow."
 version: 1.0.0
 metadata:
