@@ -44,7 +44,7 @@ USAGE
 OPTIONS
   --url URL          Worker API URL (e.g. https://mails-worker.xxx.workers.dev)
   --token TOKEN      Auth token for the API
-  --mailbox ADDR     Your agent's email address (e.g. agent@mails.dev)
+  --mailbox ADDR     Your agent's email address (e.g. agent@mails0.com)
   --platform NAME    Force platform: claude-code, openclaw, or universal
   --help, -h         Show this help message
   --version, -v      Show version
@@ -133,7 +133,7 @@ if [ "$NON_INTERACTIVE" = false ] && [ -f "$MAILS_CONFIG" ]; then
 
     # Hosted users may not have worker_url set
     if [ -z "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ]; then
-      AUTO_WORKER_URL="https://mails-dev-worker.o-u-turing.workers.dev"
+      AUTO_WORKER_URL="https://mails-worker.genedai.workers.dev"
       IS_HOSTED=true
     fi
 
@@ -220,7 +220,7 @@ if [ "$NON_INTERACTIVE" = false ]; then
   if [ -n "$AUTO_MAILBOX" ]; then
     MAILBOX="$AUTO_MAILBOX"
   elif [ -z "${MAILBOX:-}" ]; then
-    read -p "  Mailbox address (e.g. agent@mails.dev): " MAILBOX
+    read -p "  Mailbox address (e.g. agent@mails0.com): " MAILBOX
     if [ -z "$MAILBOX" ]; then
       err "Mailbox address is required."; exit 1
     fi

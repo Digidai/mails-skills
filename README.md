@@ -31,7 +31,7 @@
 
 ```bash
 npm install -g mails-agent    # Install the CLI
-mails claim myagent           # Claim myagent@mails.dev (free)
+mails claim myagent           # Claim myagent@mails0.com (free)
 ```
 
 Then install the skill:
@@ -149,7 +149,7 @@ export MAILS_MAILBOX="agent@yourdomain.com"
 You:   "Sign up for an account on example.com using our email"
 
 Agent: 1. Opens example.com/register
-       2. Fills in the form with agent@mails.dev
+       2. Fills in the form with agent@mails0.com
        3. Submits the form
        4. Calls GET /api/code?timeout=60
        5. Receives { "code": "483920" }
