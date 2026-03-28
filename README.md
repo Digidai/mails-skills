@@ -24,6 +24,9 @@
 | Search inbox | "Find all emails from GitHub" |
 | Download attachments | "Get the PDF from that invoice email" |
 | Auto-register for services | Full flow: fill form, wait for code, verify |
+| Conversation threads | "Show me the full thread with Alice" |
+| Filter by label | "Show me all newsletters" (newsletter, notification, code, personal) |
+| Extract structured data | "Extract the order details from that confirmation email" (order, shipping, calendar, receipt) |
 
 ## Quick Start
 
@@ -106,6 +109,9 @@ mails Worker (Cloudflare Workers + D1 + R2)
     |-- Search:  FTS5 full-text search
     |-- Codes:   Auto-extract 4-8 digit verification codes
     |-- Files:   Attachments in R2, downloadable via API
+    |-- Threads: Conversation threading by subject/references
+    |-- Labels:  Auto-categorize (newsletter, notification, code, personal)
+    |-- Extract: Structured data extraction (order, shipping, calendar, receipt)
     '-- Hooks:   Webhook POST on every received email
 ```
 

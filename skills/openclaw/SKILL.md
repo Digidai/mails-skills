@@ -1,7 +1,7 @@
 ---
 name: Mails for Agent
-description: "Send and receive emails via HTTP API. Use when the agent needs to: sign up for services and enter verification codes, monitor an inbox for incoming messages, send notifications or reports, search emails by keyword, download attachments, or interact with any email-based workflow."
-version: 1.0.0
+description: "Send and receive emails via HTTP API. Use when the agent needs to: sign up for services and enter verification codes, monitor an inbox for incoming messages, send notifications or reports, search emails by keyword, download attachments, view conversation threads, filter by label, extract structured data, or interact with any email-based workflow."
+version: 1.5.0
 metadata:
   openclaw:
     requires:
@@ -28,6 +28,9 @@ curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox"
 
 # Search / filter / paginate
 curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?query=keyword&direction=inbound&limit=10&offset=0"
+
+# Filter by label (newsletter, notification, code, personal)
+curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/inbox?label=notification"
 ```
 
 Response: `{ "emails": [{ "id", "from_address", "from_name", "subject", "code", "direction", "status", "received_at", "has_attachments", "attachment_count" }] }`
@@ -39,6 +42,16 @@ curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/email?i
 ```
 
 Returns full email with `body_text`, `body_html`, headers, metadata, and attachments list.
+
+### Conversation Threads
+
+```bash
+# List conversation threads
+curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/threads?to=$MAILS_MAILBOX"
+
+# Get all emails in a thread
+curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/thread?id=THREAD_ID&to=$MAILS_MAILBOX"
+```
 
 ### Wait for Verification Code
 
@@ -72,6 +85,17 @@ Send fields:
 | headers | No | Custom headers object |
 | attachments | No | Array of `{ filename, content (base64), content_type?, content_id? }` |
 
+### Extract Structured Data
+
+```bash
+# Extract structured data from an email (order, shipping, calendar, receipt, code)
+curl -s -X POST \
+  -H "Authorization: Bearer $MAILS_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  "$MAILS_API_URL/api/extract" \
+  -d "{\"email_id\":\"EMAIL_ID\"}"
+```
+
 ### Delete Email
 
 ```bash
@@ -93,6 +117,24 @@ curl -s -H "Authorization: Bearer $MAILS_AUTH_TOKEN" "$MAILS_API_URL/api/me"
 curl -s "$MAILS_API_URL/health"   # No auth required
 ```
 
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/send` | Send email (requires `RESEND_API_KEY` secret) |
+| `GET /api/inbox?to=<addr>&limit=20` | List emails |
+| `GET /api/inbox?to=<addr>&query=<text>` | Search emails (FTS5 full-text search) |
+| `GET /api/inbox?to=<addr>&label=<label>` | Filter emails by label (newsletter, notification, code, personal) |
+| `GET /api/code?to=<addr>&timeout=30` | Long-poll for verification code |
+| `GET /api/email?id=<id>` | Get email by ID (with attachments) |
+| `DELETE /api/email?id=<id>` | Delete email (and its attachments + R2 objects) |
+| `GET /api/attachment?id=<id>` | Download attachment |
+| `GET /api/threads?to=<addr>` | List conversation threads |
+| `GET /api/thread?id=<id>&to=<addr>` | Get all emails in a thread |
+| `POST /api/extract` | Extract structured data (order, shipping, calendar, receipt, code) |
+| `GET /api/me` | Worker info and capabilities |
+| `GET /health` | Health check (always public, no auth) |
+
 ## Common Flows
 
 **Sign up for a service:**
@@ -104,6 +146,18 @@ curl -s "$MAILS_API_URL/health"   # No auth required
 1. `GET /api/inbox` -- list emails
 2. `GET /api/email?id=<id>` -- read details
 3. `DELETE /api/email?id=<id>` -- clean up after processing
+
+**View conversation threads:**
+1. `GET /api/threads?to=$MAILS_MAILBOX` -- list threads
+2. `GET /api/thread?id=<id>&to=$MAILS_MAILBOX` -- get thread details
+
+**Filter by category:**
+1. `GET /api/inbox?label=newsletter` -- filter by label
+2. Available labels: newsletter, notification, code, personal
+
+**Extract structured data:**
+1. `POST /api/extract` with `{"email_id":"EMAIL_ID"}`
+2. Returns structured data: order details, shipping info, calendar events, receipts, or codes
 
 ## Constraints
 
