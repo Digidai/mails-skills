@@ -57,7 +57,7 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 
 # Extract structured data from an email (order, shipping, calendar, receipt, code)
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "$API/api/extract" -d '{"email_id":"EMAIL_ID"}'
+  "$API/api/extract" -d '{"email_id":"EMAIL_ID","type":"order"}'
 
 # Download attachment
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/attachment?id=ATTACHMENT_ID" -o file.pdf
@@ -97,7 +97,7 @@ curl -s "$API/health"
 | `GET /api/attachment?id=<id>` | Download attachment |
 | `GET /api/threads?to=<addr>` | List conversation threads |
 | `GET /api/thread?id=<id>&to=<addr>` | Get all emails in a thread |
-| `POST /api/extract` | Extract structured data (order, shipping, calendar, receipt, code) |
+| `POST /api/extract` | Extract structured data. Body: `{ email_id, type }` where type is order/shipping/calendar/receipt/code |
 | `GET /api/me` | Worker info and capabilities |
 | `GET /health` | Health check (always public, no auth) |
 
@@ -122,7 +122,7 @@ curl -s "$API/health"
 2. Available labels: newsletter, notification, code, personal
 
 **Extract structured data:**
-1. `POST /api/extract` with `{"email_id":"EMAIL_ID"}`
+1. `POST /api/extract` with `{"email_id":"EMAIL_ID","type":"order"}` (type: order, shipping, calendar, receipt, code)
 2. Returns structured data: order details, shipping info, calendar events, receipts, or codes
 
 ## Constraints

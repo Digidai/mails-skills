@@ -88,12 +88,12 @@ Send fields:
 ### Extract Structured Data
 
 ```bash
-# Extract structured data from an email (order, shipping, calendar, receipt, code)
+# Extract structured data from an email (type: order, shipping, calendar, receipt, code)
 curl -s -X POST \
   -H "Authorization: Bearer $MAILS_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   "$MAILS_API_URL/api/extract" \
-  -d "{\"email_id\":\"EMAIL_ID\"}"
+  -d "{\"email_id\":\"EMAIL_ID\",\"type\":\"order\"}"
 ```
 
 ### Delete Email
@@ -131,7 +131,7 @@ curl -s "$MAILS_API_URL/health"   # No auth required
 | `GET /api/attachment?id=<id>` | Download attachment |
 | `GET /api/threads?to=<addr>` | List conversation threads |
 | `GET /api/thread?id=<id>&to=<addr>` | Get all emails in a thread |
-| `POST /api/extract` | Extract structured data (order, shipping, calendar, receipt, code) |
+| `POST /api/extract` | Extract structured data. Body: `{ email_id, type }` where type is order/shipping/calendar/receipt/code |
 | `GET /api/me` | Worker info and capabilities |
 | `GET /health` | Health check (always public, no auth) |
 
@@ -156,7 +156,7 @@ curl -s "$MAILS_API_URL/health"   # No auth required
 2. Available labels: newsletter, notification, code, personal
 
 **Extract structured data:**
-1. `POST /api/extract` with `{"email_id":"EMAIL_ID"}`
+1. `POST /api/extract` with `{"email_id":"EMAIL_ID","type":"order"}` (type: order, shipping, calendar, receipt, code)
 2. Returns structured data: order details, shipping info, calendar events, receipts, or codes
 
 ## Constraints
