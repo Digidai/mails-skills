@@ -195,10 +195,12 @@ install.sh                 # Interactive + non-interactive installer
 
 ## Ecosystem
 
-| Project | Description | Users |
+| Project | Install | Description |
 |---|---|---|
-| **[mails](https://github.com/Digidai/mails)** | Email server (Worker) + CLI + SDK | Developers deploying email infra |
-| **[mails-skills](https://github.com/Digidai/mails-skills)** (this repo) | Skill files for AI agents | AI agents (Claude Code, OpenClaw, etc.) |
+| **[mails](https://github.com/Digidai/mails)** | `npm i -g mails-agent` | CLI + SDK + Worker |
+| **[mails-mcp](https://github.com/Digidai/mails-mcp)** | `npx mails-agent-mcp` | MCP Server (10 tools) |
+| **[mails-python](https://github.com/Digidai/mails-python)** | `pip install mails-agent` | Python SDK |
+| **[mails-skills](https://github.com/Digidai/mails-skills)** (this repo) | `npx mails-skills` | Agent Skills |
 
 ## Contributing
 
