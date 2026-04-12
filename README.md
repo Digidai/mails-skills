@@ -172,6 +172,16 @@ Agent: 1. Opens example.com/register
 MAILS_URL=https://your-worker.workers.dev MAILS_TOKEN=YOUR_TOKEN MAILS_MAILBOX=agent@example.com ./install.sh
 ```
 
+## Captcha Limitation
+
+Most modern SaaS services (Render, Figma, etc.) use captcha challenges that block fully autonomous agent registration. mails-skills handles the email/OTP side, captcha is a browser-layer problem.
+
+**Recommended solutions:**
+- [Steel](https://steel.dev) -- open-source browser API with built-in captcha solving
+- [Browserbase](https://www.browserbase.com) -- cloud browsers with captcha solving + Agent Identity
+- [CapSolver](https://www.capsolver.com) -- captcha solving API ($0.80/1K solves), browser extension available
+- [Web Bot Auth](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture) -- emerging IETF protocol for verified bot identity (Cloudflare, AWS, Akamai support)
+
 ## Troubleshooting
 
 | Problem | Solution |

@@ -172,6 +172,6 @@ Headers: `X-Webhook-Event`, `X-Webhook-Id`, `X-Webhook-Signature` (HMAC-SHA256).
 ## Constraints
 
 - `from` must match your mailbox address (enforced server-side)
-- Verification codes: 4-8 char alphanumeric (EN/ZH/JA/KO)
+- Verification codes: 4-12 char alphanumeric (EN/ZH/JA/KO)
 - Body limits: text 500KB, HTML 1MB; inbound storage: text 50KB, HTML 100KB
 - Max 50 recipients, subject max 998 chars, code timeout max 55s

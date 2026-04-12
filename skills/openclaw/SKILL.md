@@ -88,6 +88,6 @@ Emails are auto-labeled on receive: `newsletter`, `notification`, `code`, `perso
 ## Constraints
 
 - `from` must match `$MAILS_MAILBOX`
-- Verification codes: 4-8 alphanumeric (EN/ZH/JA/KO)
+- Verification codes: 4-12 alphanumeric (EN/ZH/JA/KO)
 - Code wait timeout max 55 seconds
 - Search uses FTS5 full-text search (keyword mode) or Vectorize (semantic mode)

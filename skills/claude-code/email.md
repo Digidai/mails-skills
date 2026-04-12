@@ -140,6 +140,6 @@ curl -s "$API/health"
 ## Constraints
 
 - `from` must be YOUR_MAILBOX (enforced server-side)
-- Verification codes: 4-8 char alphanumeric (EN/ZH/JA/KO)
+- Verification codes: 4-12 char alphanumeric (EN/ZH/JA/KO)
 - Body limits: text 500KB, HTML 1MB; inbound storage: text 50KB, HTML 100KB
 - Code timeout max 55 seconds
