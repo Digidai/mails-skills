@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">mails-skills</h1>
   <p align="center">
-    Give your AI agent a real email address. Send, receive, and extract verification codes.
+    Your AI agent can now sign up for any service. Verification codes handled automatically.
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
@@ -12,18 +12,18 @@
 
 ---
 
-**Your agent needs an email address.** To sign up for services, receive verification codes, send notifications, or monitor an inbox -- it needs email. `mails-skills` gives any LLM agent that ability in under 2 minutes.
+**Your agent hits "enter verification code" and stops.** Not anymore. `mails-skills` gives any AI agent the ability to receive verification codes and complete service registrations autonomously. One API call: `GET /api/code?timeout=60`.
 
 ## What Your Agent Can Do
 
 | Capability | Example |
 |---|---|
+| **Auto-register for services** | **Full flow: fill form, wait for code, verify. Zero human intervention.** |
+| **Extract verification codes** | **"Sign up on example.com and enter the code"** |
 | Receive emails | "Check my inbox for new messages" |
 | Send emails | "Send a summary report to alice@company.com" |
-| Extract verification codes | "Sign up on example.com and enter the code" |
 | Search inbox | "Find all emails from GitHub" |
 | Download attachments | "Get the PDF from that invoice email" |
-| Auto-register for services | Full flow: fill form, wait for code, verify |
 | Conversation threads | "Show me the full thread with Alice" |
 | Filter by label | "Show me all newsletters" (newsletter, notification, code, personal) |
 | Extract structured data | "Extract the order details from that confirmation email" (order, shipping, calendar, receipt) |

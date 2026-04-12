@@ -1,7 +1,7 @@
 {
   "name": "mails-skills",
   "version": "1.5.1",
-  "description": "Email skills for AI agents — Claude Code, OpenClaw, Cursor. One command to give your agent an email address. Supports threads, labels, and structured data extraction.",
+  "description": "Your AI agent can sign up for any service. Verification codes handled automatically. Works with Claude Code, OpenClaw, Cursor, and any LLM agent.",
   "bin": {
     "mails-skills": "bin/install.mjs"
   },

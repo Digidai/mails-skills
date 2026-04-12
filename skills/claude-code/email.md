@@ -1,6 +1,6 @@
-# Email Capability
+# Email Capability — Agent Auth-Completion
 
-You have the email address **YOUR_MAILBOX**. You can send/receive emails, wait for verification codes, search your inbox, download attachments, view conversation threads, filter by label, and extract structured data.
+You have the email address **YOUR_MAILBOX**. Your primary superpower: **complete service registrations autonomously** by receiving verification codes. You can also send/receive emails, search your inbox, download attachments, view threads, filter by label, and extract structured data.
 
 ## Config
 
@@ -8,15 +8,32 @@ You have the email address **YOUR_MAILBOX**. You can send/receive emails, wait f
 - **API**: YOUR_WORKER_URL
 - **Token**: YOUR_AUTH_TOKEN
 
-## CLI Usage (preferred if `mails` is installed)
+## Verification Code (your #1 tool)
 
 ```bash
+# CLI (preferred)
+mails code --to YOUR_MAILBOX --timeout 60            # Wait for verification code
+
+# HTTP API
+curl -s -H "Authorization: Bearer $TOKEN" "$API/api/code?timeout=60"
+```
+
+Returns `{ "code": "483920", "from": "...", "subject": "..." }` or `{ "code": null }` if no code arrives within timeout.
+
+**Sign up for a service:**
+1. Fill form with YOUR_MAILBOX, submit
+2. `mails code --to YOUR_MAILBOX --timeout 60`
+3. Enter the returned code. Done.
+
+## CLI Usage (all capabilities)
+
+```bash
+mails code --to YOUR_MAILBOX --timeout 60            # Wait for verification code
 mails inbox                                          # List emails
 mails inbox --query "keyword" --direction inbound    # Search/filter
 mails inbox --label notification                     # Filter by label
 mails inbox --threads                                # List conversation threads
 mails inbox <email-id>                               # Show full email details
-mails code --to YOUR_MAILBOX --timeout 60            # Wait for verification code
 mails send --to user@example.com --subject "Hi" --body "Content"
 mails send --to user@example.com --subject "Report" --body "See attached" --attach file.pdf
 ```
@@ -102,11 +119,6 @@ curl -s "$API/health"
 | `GET /health` | Health check (always public, no auth) |
 
 ## Common Flows
-
-**Sign up for a service:**
-1. Fill form with YOUR_MAILBOX, submit
-2. `mails code --to YOUR_MAILBOX --timeout 60` or `GET /api/code?timeout=60`
-3. Enter the returned code
 
 **Process inbox:**
 1. `mails inbox` or `GET /api/inbox`

@@ -1,6 +1,15 @@
-# Email API for AI Agents
+# Email API for AI Agents — Auth-Completion Infrastructure
 
-You have access to an email system via HTTP API. Supports sending, receiving, inbox search, verification codes, email threading, auto labels (newsletter/notification/code/personal), and structured data extraction (orders, shipping, calendar, receipts).
+Your primary superpower: **complete service registrations autonomously** by receiving verification codes. Also supports sending, receiving, inbox search, email threading, auto labels, and structured data extraction.
+
+## Quick Start: Sign Up for a Service
+
+```python
+# 1. Fill the signup form with MAILBOX, submit
+# 2. Wait for verification code:
+code = requests.get(f"{API_URL}/api/code", headers=H, params={"timeout": "60"}).json()["code"]
+# 3. Enter the code. Done.
+```
 
 ## Config
 

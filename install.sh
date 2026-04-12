@@ -360,9 +360,14 @@ VERIFY=$(curl -s --max-time 10 -H "Authorization: Bearer $AUTH_TOKEN" "$WORKER_U
 if echo "$VERIFY" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'mailbox' in d else 1)" 2>/dev/null; then
   VERIFIED_MAILBOX=$(echo "$VERIFY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('mailbox',''))" 2>/dev/null)
   CAN_SEND=$(echo "$VERIFY" | python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('send') else 'no')" 2>/dev/null)
+  WORKER_VER=$(echo "$VERIFY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('version','unknown'))" 2>/dev/null)
   ok "Connected to API"
   echo "    Mailbox:  $VERIFIED_MAILBOX"
   echo "    Can send: $CAN_SEND"
+  echo "    Worker:   v$WORKER_VER"
+  if [ "$WORKER_VER" = "unknown" ]; then
+    warn "Could not detect Worker version. Skill may not be fully compatible."
+  fi
 elif echo "$VERIFY" | grep -q "Unauthorized"; then
   err "Invalid auth token."
   echo "    Check your token in ~/.mails/config.json or re-run: mails claim <name>"
@@ -376,6 +381,17 @@ else
   echo "    The skill was installed, but the connection could not be verified."
 fi
 
+# --- MCP Server (optional) ---
+if [ "$PLATFORM" = "claude-code" ]; then
+  echo ""
+  echo -e "${BOLD}MCP Server (optional):${RESET}"
+  echo "  For native tool integration, install the MCP server:"
+  echo -e "  ${DIM}npx mails-agent-mcp${RESET}"
+  echo ""
+  echo "  Then add to your Claude Code MCP config:"
+  echo -e "  ${DIM}{\"mcpServers\":{\"mails\":{\"command\":\"npx\",\"args\":[\"mails-agent-mcp\"]}}}${RESET}"
+fi
+
 # --- Success ---
 echo ""
 echo -e "${GREEN}${BOLD}Setup complete!${RESET}"
@@ -383,5 +399,5 @@ echo ""
 echo "  Your agent's email: $MAILBOX"
 echo ""
 echo "  Test it now -- tell your agent:"
-echo -e "  ${DIM}\"Check my inbox\"${RESET}"
+echo -e "  ${DIM}\"Sign up for example.com using my email\"${RESET}"
 echo ""
