@@ -1,7 +1,7 @@
 ---
 name: Mails for Agent
 description: "Complete service registrations autonomously by receiving verification codes. Also: send and receive emails, monitor inbox, search by keyword, download attachments, view threads, filter by label, extract structured data."
-version: 1.6.0
+version: 1.7.0
 metadata:
   openclaw:
     requires:
