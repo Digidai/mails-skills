@@ -133,7 +133,7 @@ if [ "$NON_INTERACTIVE" = false ] && [ -f "$MAILS_CONFIG" ]; then
 
     # Hosted users may not have worker_url set
     if [ -z "$AUTO_WORKER_URL" ] && [ -n "$AUTO_AUTH_TOKEN" ]; then
-      AUTO_WORKER_URL="https://mails-worker.genedai.workers.dev"
+      AUTO_WORKER_URL="https://api.mails0.com"
       IS_HOSTED=true
     fi
 

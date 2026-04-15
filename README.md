@@ -107,7 +107,7 @@ mails Worker (Cloudflare Workers + D1 + R2)
     |-- Receive: Cloudflare Email Routing -> Worker -> D1
     |-- Send:    Worker -> Resend API -> SMTP
     |-- Search:  FTS5 full-text search
-    |-- Codes:   Auto-extract 4-8 digit verification codes
+    |-- Codes:   Auto-extract 4-12 char verification codes
     |-- Files:   Attachments in R2, downloadable via API
     |-- Threads: Conversation threading by subject/references
     |-- Labels:  Auto-categorize (newsletter, notification, code, personal)

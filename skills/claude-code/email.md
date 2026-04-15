@@ -52,10 +52,10 @@ curl -s -H "Authorization: Bearer $TOKEN" "$API/api/inbox?query=keyword&directio
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/inbox?label=notification"
 
 # List conversation threads
-curl -s -H "Authorization: Bearer $TOKEN" "$API/api/threads?to=YOUR_MAILBOX"
+curl -s -H "Authorization: Bearer $TOKEN" "$API/api/threads"
 
 # Get all emails in a thread
-curl -s -H "Authorization: Bearer $TOKEN" "$API/api/thread?id=THREAD_ID&to=YOUR_MAILBOX"
+curl -s -H "Authorization: Bearer $TOKEN" "$API/api/thread?id=THREAD_ID"
 
 # Wait for verification code (long-poll)
 curl -s -H "Authorization: Bearer $TOKEN" "$API/api/code?timeout=60"
@@ -105,15 +105,15 @@ curl -s "$API/health"
 | Endpoint | Description |
 |----------|-------------|
 | `POST /api/send` | Send email (requires `RESEND_API_KEY` secret) |
-| `GET /api/inbox?to=<addr>&limit=20` | List emails |
-| `GET /api/inbox?to=<addr>&query=<text>` | Search emails (FTS5 full-text search) |
-| `GET /api/inbox?to=<addr>&label=<label>` | Filter emails by label (newsletter, notification, code, personal) |
-| `GET /api/code?to=<addr>&timeout=30` | Long-poll for verification code |
+| `GET /api/inbox?limit=20` | List emails |
+| `GET /api/inbox?query=<text>` | Search emails (FTS5 full-text search) |
+| `GET /api/inbox?label=<label>` | Filter emails by label (newsletter, notification, code, personal) |
+| `GET /api/code?timeout=30` | Long-poll for verification code |
 | `GET /api/email?id=<id>` | Get email by ID (with attachments) |
 | `DELETE /api/email?id=<id>` | Delete email (and its attachments + R2 objects) |
 | `GET /api/attachment?id=<id>` | Download attachment |
-| `GET /api/threads?to=<addr>` | List conversation threads |
-| `GET /api/thread?id=<id>&to=<addr>` | Get all emails in a thread |
+| `GET /api/threads` | List conversation threads |
+| `GET /api/thread?id=<id>` | Get all emails in a thread |
 | `POST /api/extract` | Extract structured data. Body: `{ email_id, type }` where type is order/shipping/calendar/receipt/code |
 | `GET /api/me` | Worker info and capabilities |
 | `GET /health` | Health check (always public, no auth) |
@@ -126,8 +126,8 @@ curl -s "$API/health"
 3. Delete when done: `DELETE /api/email?id=xxx`
 
 **View conversation threads:**
-1. `mails inbox --threads` or `GET /api/threads?to=YOUR_MAILBOX`
-2. Get thread details: `GET /api/thread?id=THREAD_ID&to=YOUR_MAILBOX`
+1. `mails inbox --threads` or `GET /api/threads`
+2. Get thread details: `GET /api/thread?id=THREAD_ID`
 
 **Filter by category:**
 1. `mails inbox --label newsletter` or `GET /api/inbox?label=newsletter`

@@ -25,16 +25,15 @@ Make HTTP requests to `$MAILS_API_URL` with header `Authorization: Bearer $MAILS
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/inbox | List emails. Params: `query`, `limit`, `offset`, `direction`, `label`, `mode` |
+| GET | /api/inbox | List/search emails. Params: `query`, `limit`, `offset`, `direction`, `label`, `mode` (keyword/semantic) |
 | GET | /api/email?id=ID | Full email with body, attachments, labels |
 | GET | /api/code?timeout=60 | Wait for verification code (long-poll). Params: `timeout`, `since` |
 | POST | /api/send | Send email. Body: `{ from, to[], subject, text, html, reply_to, headers, attachments }` |
 | DELETE | /api/email?id=ID | Delete email and attachments |
 | GET | /api/attachment?id=ID | Download attachment |
-| GET | /api/threads | List conversation threads. Params: `to`, `limit`, `offset` |
-| GET | /api/thread?id=ID | Get all emails in a thread. Params: `to` |
+| GET | /api/threads | List conversation threads. Params: `limit`, `offset` |
+| GET | /api/thread?id=ID | Get all emails in a thread |
 | POST | /api/extract | Extract structured data. Body: `{ email_id, type }` type: order/shipping/calendar/receipt/code |
-| GET | /api/search?q=TEXT | Semantic/hybrid search. Params: `mode` (keyword/semantic/hybrid) |
 | GET | /api/me | Worker info and capabilities |
 | GET | /health | Health check (no auth) |
 
@@ -44,15 +43,15 @@ All requests (except /health) require `Authorization: Bearer $MAILS_AUTH_TOKEN` 
 
 POST requests require `Content-Type: application/json` header.
 
-Inbox query params: `to=$MAILS_MAILBOX` is required for mailbox scoping.
+The `to` param is optional — the API auto-scopes to the token's mailbox.
 
 ## Response Shapes
 
-**Inbox**: `{ "emails": [{ "id", "from_address", "from_name", "subject", "code", "direction", "status", "received_at", "has_attachments", "attachment_count" }] }`
+**Inbox**: `{ "emails": [{ "id", "from_address", "from_name", "subject", "code", "direction", "status", "received_at", "has_attachments", "attachment_count" }], "search_mode": "keyword" }`
 
 **Email detail**: Full email object with `body_text`, `body_html`, `headers`, `metadata`, `labels`, `thread_id`, `attachments[]`
 
-**Code**: `{ "code": "483920", "from": "...", "subject": "..." }` or `{ "code": null }`
+**Code**: `{ "id": "...", "code": "483920", "from": "...", "subject": "...", "received_at": "..." }` or `{ "code": null }`
 
 **Threads**: `{ "threads": [{ "thread_id", "latest_email_id", "subject", "from_address", "from_name", "received_at", "message_count", "has_attachments" }] }`
 
@@ -81,7 +80,7 @@ Emails are auto-labeled on receive: `newsletter`, `notification`, `code`, `perso
 
 **Process inbox:** GET /api/inbox → GET /api/email?id=ID → DELETE /api/email?id=ID
 
-**View threads:** GET /api/threads?to=$MAILS_MAILBOX → GET /api/thread?id=THREAD_ID
+**View threads:** GET /api/threads → GET /api/thread?id=THREAD_ID
 
 **Extract data:** POST /api/extract with `{"email_id":"ID","type":"order"}`
 
