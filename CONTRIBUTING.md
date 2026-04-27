@@ -41,8 +41,8 @@ cd mails-skills
 # Test the installer locally
 ./install.sh
 
-# Test non-interactive mode
-./install.sh --url https://example.workers.dev --token test123 --mailbox test@example.com
+# Test non-interactive mode (hosted)
+./install.sh --url https://api.mails0.com --token test123 --mailbox test@mails0.com
 ```
 
 ## License

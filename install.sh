@@ -42,7 +42,7 @@ USAGE
   ./install.sh --version                          Show version
 
 OPTIONS
-  --url URL          Worker API URL (e.g. https://mails-worker.xxx.workers.dev)
+  --url URL          API URL. Hosted: https://api.mails0.com. Self-hosted: your https://<worker>.workers.dev
   --token TOKEN      Auth token for the API
   --mailbox ADDR     Your agent's email address (e.g. agent@mails0.com)
   --platform NAME    Force platform: claude-code, openclaw, or universal
@@ -58,11 +58,14 @@ EXAMPLES
   # Hosted (after running: npm install -g mails-agent && mails claim myagent)
   ./install.sh
 
-  # Self-hosted, non-interactive
-  ./install.sh --url https://mails.example.workers.dev --token abc123 --mailbox bot@example.com
+  # Hosted, non-interactive
+  ./install.sh --url https://api.mails0.com --token abc123 --mailbox bot@mails0.com
 
-  # CI / automation
-  MAILS_URL=https://mails.example.workers.dev MAILS_TOKEN=abc123 MAILS_MAILBOX=bot@example.com ./install.sh
+  # Self-hosted, non-interactive (replace with your own Worker URL)
+  ./install.sh --url https://mails-worker.<subdomain>.workers.dev --token abc123 --mailbox bot@example.com
+
+  # CI / automation (hosted)
+  MAILS_URL=https://api.mails0.com MAILS_TOKEN=abc123 MAILS_MAILBOX=bot@mails0.com ./install.sh
 
 HELP
   exit 0
@@ -202,7 +205,7 @@ if [ "$NON_INTERACTIVE" = false ]; then
     WORKER_URL="$AUTO_WORKER_URL"
   elif [ -z "${WORKER_URL:-}" ]; then
     step "Configuration..."
-    read -p "  Worker API URL (e.g. https://mails-worker.xxx.workers.dev): " WORKER_URL
+    read -p "  API URL (hosted: https://api.mails0.com | self-hosted: https://<worker>.workers.dev): " WORKER_URL
     if [ -z "$WORKER_URL" ]; then
       err "Worker API URL is required."; exit 1
     fi
@@ -229,6 +232,9 @@ fi
 
 # Strip trailing slash
 WORKER_URL="${WORKER_URL%/}"
+if [ "$WORKER_URL" = "https://api.mails0.com" ] || [[ "$AUTH_TOKEN" == mk_* ]]; then
+  IS_HOSTED=true
+fi
 
 # Escape sed special characters
 escape_sed() { printf '%s' "$1" | sed 's/[&\\/|]/\\&/g'; }
@@ -255,6 +261,7 @@ case $PLATFORM in
     # Configure mails CLI
     configure_mails_cli() {
       if [ "$IS_HOSTED" = true ]; then
+        mails config set api_key "$AUTH_TOKEN"
         mails config set mailbox "$MAILBOX"
         mails config set default_from "$MAILBOX"
       else
@@ -355,7 +362,11 @@ esac
 # --- Verify connection ---
 step "Verifying connection..."
 
-VERIFY=$(curl -s --max-time 10 -H "Authorization: Bearer $AUTH_TOKEN" "$WORKER_URL/api/me" 2>/dev/null || echo '{"error":"connection failed"}')
+VERIFY_PATH="/api/me"
+if [ "$IS_HOSTED" = true ]; then
+  VERIFY_PATH="/v1/me"
+fi
+VERIFY=$(curl -s --max-time 10 -H "Authorization: Bearer $AUTH_TOKEN" "$WORKER_URL$VERIFY_PATH" 2>/dev/null || echo '{"error":"connection failed"}')
 
 if echo "$VERIFY" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'mailbox' in d else 1)" 2>/dev/null; then
   VERIFIED_MAILBOX=$(echo "$VERIFY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('mailbox',''))" 2>/dev/null)

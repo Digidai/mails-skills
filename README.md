@@ -138,9 +138,9 @@ cp skills/claude-code/email.md ~/.claude/skills/email.md
 ```bash
 cp -r skills/openclaw ~/.openclaw/skills/email
 # Add to ~/.zshrc:
-export MAILS_API_URL="https://your-worker.workers.dev"
+export MAILS_API_URL="https://api.mails0.com"   # self-hosted: your https://<worker>.workers.dev
 export MAILS_AUTH_TOKEN="your-token"
-export MAILS_MAILBOX="agent@yourdomain.com"
+export MAILS_MAILBOX="agent@mails0.com"
 ```
 
 **Any other agent:**
@@ -166,10 +166,13 @@ Agent: 1. Opens example.com/register
 ## Non-Interactive Install (CI / Automation)
 
 ```bash
-./install.sh --url https://your-worker.workers.dev --token YOUR_TOKEN --mailbox agent@example.com
+# Hosted (default)
+./install.sh --url https://api.mails0.com --token YOUR_TOKEN --mailbox agent@mails0.com
 
 # Or with environment variables:
-MAILS_URL=https://your-worker.workers.dev MAILS_TOKEN=YOUR_TOKEN MAILS_MAILBOX=agent@example.com ./install.sh
+MAILS_URL=https://api.mails0.com MAILS_TOKEN=YOUR_TOKEN MAILS_MAILBOX=agent@mails0.com ./install.sh
+
+# Self-hosted: replace the URL with your own Worker, e.g. https://mails-worker.<subdomain>.workers.dev
 ```
 
 ## Captcha Limitation
